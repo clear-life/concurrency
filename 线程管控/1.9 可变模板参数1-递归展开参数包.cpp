@@ -2,10 +2,16 @@
 
 using namespace std;
 
-// 递归终止函数
+// 递归终止函数 1
 void fun()
 {
-	cout << "终止" << endl;
+}
+
+// 递归终止函数 2
+template<typename T>
+void fun(T t)
+{
+	cout << t << endl;
 }
 
 // 展开函数
