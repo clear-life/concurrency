@@ -1,22 +1,26 @@
 class _Mutex_base       // base class for all mutex types
 { 
 public:
-    _Mutex_base(int _Flags = 0) noexcept {
+    _Mutex_base(int _Flags = 0) noexcept 
+    {
         _Mtx_init_in_situ(_Mymtx(), _Flags | _Mtx_try);
     }
 
-    ~_Mutex_base() noexcept {
+    ~_Mutex_base() noexcept 
+    {
         _Mtx_destroy_in_situ(_Mymtx());
     }
 
     _Mutex_base(const _Mutex_base&) = delete;
     _Mutex_base& operator=(const _Mutex_base&) = delete;
 
-    void lock() {
+    void lock() 
+    {
         _Check_C_return(_Mtx_lock(_Mymtx()));
     }
 
-    _NODISCARD bool try_lock() {
+    _NODISCARD bool try_lock() 
+    {
         const auto _Res = _Mtx_trylock(_Mymtx());
         switch (_Res) {
         case _Thrd_success:
@@ -28,13 +32,15 @@ public:
         }
     }
 
-    void unlock() {
+    void unlock() 
+    {
         _Mtx_unlock(_Mymtx());
     }
 
     using native_handle_type = void*;
 
-    _NODISCARD native_handle_type native_handle() {
+    native_handle_type native_handle() 
+    {
         return _Mtx_getconcrtcs(_Mymtx());
     }
 
