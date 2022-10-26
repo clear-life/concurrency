@@ -19,7 +19,7 @@ public:
         _Check_C_return(_Mtx_lock(_Mymtx()));
     }
 
-    _NODISCARD bool try_lock() 
+    bool try_lock() 
     {
         const auto _Res = _Mtx_trylock(_Mymtx());
         switch (_Res) {
@@ -37,9 +37,7 @@ public:
         _Mtx_unlock(_Mymtx());
     }
 
-    using native_handle_type = void*;
-
-    native_handle_type native_handle() 
+    void* native_handle() 
     {
         return _Mtx_getconcrtcs(_Mymtx());
     }
@@ -50,13 +48,10 @@ private:
 
     aligned_storage_t<_Mtx_internal_imp_size, _Mtx_internal_imp_alignment> _Mtx_storage;
 
-    _Mtx_t _Mymtx() noexcept { // get pointer to _Mtx_internal_imp_t inside _Mtx_storage
-        return reinterpret_cast<_Mtx_t>(&_Mtx_storage);
-    }
 };
 
 class mutex : public _Mutex_base 
-{ // class for mutual exclusion
+{ 
 public:
     mutex() noexcept : _Mutex_base() {}
 
@@ -65,7 +60,7 @@ public:
 };
 
 class recursive_mutex : public _Mutex_base 
-{ // class for recursive mutual exclusion
+{ 
 public:
     recursive_mutex() : _Mutex_base(_Mtx_recursive) {}
 

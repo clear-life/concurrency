@@ -4,7 +4,7 @@
 using namespace std;
 
 // unlock 两次对本身而言没有问题
-// 但对别的线程而言, 其本应被阻塞, 却因为多 unlock 了一次而不被阻塞
+// 但对别的线程而言, 其本应被阻塞, 却因为多 unlock 了一次而不被阻塞进入临界区
 // 所以第二次 unlock 不会成功
 int main()
 {

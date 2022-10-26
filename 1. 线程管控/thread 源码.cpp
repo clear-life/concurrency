@@ -8,9 +8,6 @@ class thread
 {
 private:
     _identifier _Thr;
-    
-public: 
-    unsigned int id;
 
 public:
     thread() noexcept : _Thr{} {}                   // 默认构造
@@ -61,17 +58,17 @@ public:
 
     void join() 
     {
-        if (!joinable()) 
+        if (!joinable())                                        // 1. 是否为 joinable
         {
             _Throw_Cpp_error(_INVALID_ARGUMENT);
         }
 
-        if (_Thr._Id == _Thrd_id()) 
+        if (_Thr._Id == _Thrd_id())                             // 2. 是否是当前线程执行 join
         {
             _Throw_Cpp_error(_RESOURCE_DEADLOCK_WOULD_OCCUR);   // 会发生资源死锁
         }
 
-        if (_Thrd_join(_Thr, nullptr) != _Thrd_success)         
+        if (_Thrd_join(_Thr, nullptr) != _Thrd_success)         // 3. 是否执行成功     
         {       
             _Throw_Cpp_error(_NO_SUCH_PROCESS);                 // 没有该线程
         }
@@ -87,6 +84,7 @@ public:
         }
 
         _Check_C_return(_Thrd_detach(_Thr));
+        
         _Thr = {};
     }
 

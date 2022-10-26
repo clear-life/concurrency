@@ -20,7 +20,6 @@ int main(void)
 {
     A a;
     try {
-        //A a;
         throw(std::string("error!"));  
         a.fun();
     }

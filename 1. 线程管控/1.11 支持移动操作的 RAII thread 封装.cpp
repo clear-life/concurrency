@@ -9,7 +9,7 @@ public:
     // 构造函数 RAII 获取资源
     j_thread(j_thread&& j) noexcept: t(std::move(j.t)) {}           // j_thread
     
-    explicit j_thread(std::thread _t) noexcept: t(std::move(_t)) {} // thread
+    explicit j_thread(std::thread &&_t) noexcept: t(std::move(_t)) {} // thread
     
     template<typename Callable, typename Args>
     explicit j_thread(Callable&& fun, Args&& args) : 	            // 构造 thread
