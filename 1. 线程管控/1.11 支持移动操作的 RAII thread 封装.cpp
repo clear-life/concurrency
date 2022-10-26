@@ -7,15 +7,15 @@ public:
     j_thread() noexcept=default;    
     
     // 构造函数 RAII 获取资源
-    j_thread(j_thread&& j) noexcept: t(std::move(j.t)) {}           // j_thread
+    j_thread(j_thread&& j) noexcept: t(std::move(j.t)) {}           // j_thread 移动构造
     
-    explicit j_thread(std::thread &&_t) noexcept: t(std::move(_t)) {} // thread
+    explicit j_thread(std::thread &&_t) noexcept: t(std::move(_t)) {} // thread 移动构造
     
     template<typename Callable, typename Args>
     explicit j_thread(Callable&& fun, Args&& args) : 	            // 构造 thread
     	t(std::forward<Callable>(fun), std::forward<Args>(args)) {}
     
-    // 线程转移
+    // 移动赋值
     j_thread& operator=(j_thread&& j) noexcept
     {
         if(joinable())

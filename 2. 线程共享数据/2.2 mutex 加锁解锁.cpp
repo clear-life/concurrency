@@ -1,13 +1,19 @@
-#include <iostream>
 #include <mutex>
+#include <list>
 
-using namespace std;
+std::list<int> l;
+std::mutex m;		// 使 add 和 find 操作互斥 
 
-int main()
+void add(int x)
 {
-    std::mutex m;
+    std::lock_guard<std::mutex> guard(m);
+
+    l.push_back(x);
+}
+
+bool find(int x)
+{
+    std::lock_guard<std::mutex> guard(m);
     
-    m.lock();
-    cout << "test" << endl;
-    m.unlock();
+    return std::find(l.begin(), l.end(), x) != l.end();
 }

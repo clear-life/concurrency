@@ -29,10 +29,12 @@ std::thread f()
 }
 
 // std::thread 参数
-void f(std::thread t);
+void f(std::thread t);	// 函数原型
 
-void fun();
+// 方法 1 : 传入临时对象
+void fun(); 
 f(std::thread(fun));
 
+// 方法 2 : 左值 move 后传入, t 为移后源对象
 std::thread t(fun);
-f(std::move(t));		// t 为移后源对象
+f(std::move(t));		

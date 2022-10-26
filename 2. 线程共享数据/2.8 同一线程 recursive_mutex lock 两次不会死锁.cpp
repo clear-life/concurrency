@@ -1,5 +1,16 @@
-void protect(函数指针 fun)
+#include <iostream>
+#include <mutex>
+
+using namespace std;
+
+int main()
 {
-    std::lock_guard<std::mutex> l(m);	// 进入临界区
-    fun(data);	// 传入保护的数据 data 的引用给外界函数 fun
+    std::recursive_mutex m;
+    m.lock();
+    m.lock();
+
+    cout << "test" << endl;
+
+    m.unlock();
+    m.unlock();
 }
