@@ -14,7 +14,7 @@ public:
 
     template<class _Fn, class... _Args>
     explicit thread(_Fn&& _Fx, _Args&&... _Ax)      // fun 与 args 构造 thread
-    {
+    { 
         _Start(std::forward<_Fn>(_Fx), std::forward<_Args>(_Ax)...);
     }
 
