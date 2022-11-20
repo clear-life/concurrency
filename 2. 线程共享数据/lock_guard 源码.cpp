@@ -1,18 +1,14 @@
-template <class T>
+template <class mutex>
 class lock_guard 
 { 
 public:
-    // 构造加锁
-    explicit lock_guard(T& _Mtx) : m(_Mtx)   // 参数为 mutex 
+    lock_guard(mutex& mtx) : m(mtx)   
     {
         m.lock();
     }
+    lock_guard(mutex& mtx, adopt_lock_t) : m(mtx) {}    // adopt_lock_t 是空 struct 类型
 
-    // 不上锁
-    lock_guard(T& _Mtx, adopt_lock_t) : m(_Mtx) {}   // std::adopt_lock 是 std::adopt_lock_t 类的实例
-
-    // 析构解锁
-    ~lock_guard() noexcept 
+    ~lock_guard() 
     {
         m.unlock();
     }
@@ -21,5 +17,5 @@ public:
     lock_guard& operator=(const lock_guard&) = delete;
 
 private:
-    T& m;
+    mutex& m;
 };
