@@ -1,168 +1,142 @@
-template <class T>
-class unique_lock { 
+class unique_lock 
+{
 public:
-    // 默认构造
-    unique_lock() noexcept : p_mtx(nullptr), own(false) {}
+    unique_lock(): pmtx(nullptr), own(false) {}
 
-    // mutex 构造
-    explicit unique_lock(T& m)
-        : p_mtx(std::addressof(m)), own(false) 
-    {
-        p_mtx->lock();
+    unique_lock(_Mutex& mtx): pmtx(std::addressof(mtx)), own(false) 
+    { 
+        pmtx->lock();
         own = true;
     }
 
-    // mutex 和 adopt_lock_t/defer_lock_t/try_to_lock_t 构造
-    unique_lock(T& m, adopt_lock_t)
-        : p_mtx(std::addressof(m)), own(true) {} // construct and assume already locked
+    unique_lock(_Mutex& mtx, adopt_lock_t): pmtx(std::addressof(mtx)), own(true) {}
 
-    unique_lock(T& m, defer_lock_t) noexcept
-        : p_mtx(std::addressof(m)), own(false) {} // construct but don't lock
+    unique_lock(_Mutex& mtx, defer_lock_t): pmtx(std::addressof(mtx)), own(false) {}
 
-    unique_lock(T& m, try_to_lock_t)
-        : p_mtx(std::addressof(m)), own(p_mtx->try_lock()) {} // construct and try to lock
+    unique_lock(_Mutex& mtx, try_to_lock_t): pmtx(std::addressof(mtx)), own(pmtx->try_lock()) {}
 
-    // 时间相关的构造
+    // 时间段和时间点
     template <class _Rep, class _Period>
-    unique_lock(T& m, const chrono::duration<_Rep, _Period>& _Rel_time)
-        : p_mtx(std::addressof(m)), own(p_mtx->try_lock_for(_Rel_time)) {} // construct and lock with timeout
+    unique_lock(_Mutex& mtx, const chrono::duration<_Rep, _Period>& rel_time)
+        : pmtx(std::addressof(mtx)), own(pmtx->try_lock_for(rel_time)) {}
 
     template <class _Clock, class _Duration>
-    unique_lock(T& m, const chrono::time_point<_Clock, _Duration>& _Abs_time)
-        : p_mtx(std::addressof(m)), own(p_mtx->try_lock_until(_Abs_time)) {
-        // construct and lock with timeout
-#if _HAS_CXX20
-        static_assert(chrono::is_clock_v<_Clock>, "Clock type required");
-#endif // _HAS_CXX20
-    }
+    unique_lock(_Mutex& mtx, const chrono::time_point<_Clock, _Duration>& abs_time)
+        : pmtx(std::addressof(mtx)), own(pmtx->try_lock_until(abs_time)) {}
 
-    unique_lock(T& m, const xtime* _Abs_time)
-        : p_mtx(std::addressof(m)), own(false) { // try to lock until _Abs_time
-        own = p_mtx->try_lock_until(_Abs_time);
-    }
 
-    // 移动构造
-    unique_lock(unique_lock&& other) noexcept : p_mtx(other.p_mtx), own(other.own) {
-        other.p_mtx = nullptr;
+    // 移动操作
+    unique_lock(unique_lock&& other): pmtx(other.pmtx), own(other.own) 
+    {
+        other.pmtx = nullptr;
         other.own = false;
     }
 
-    // 移动赋值
-    unique_lock& operator=(unique_lock&& other) {
+    unique_lock& operator=(unique_lock&& other) 
+    {
         if (this != std::addressof(other)) 
         {
             if (own) 
             {
-                p_mtx->unlock();
+                pmtx->unlock();
             }
 
-            p_mtx       = other.p_mtx;
+            pmtx        = other.pmtx;
             own         = other.own;
-            other.p_mtx = nullptr;
+            other.pmtx  = nullptr;
             other.own   = false;
         }
         return *this;
     }
 
-    // 析构
-    ~unique_lock() noexcept 
+    ~unique_lock()  
     {
         if (own) 
         {
-            p_mtx->unlock();
+            pmtx->unlock();
         }
     }
 
-    // 禁用拷贝构造和拷贝赋值
     unique_lock(const unique_lock&) = delete;
     unique_lock& operator=(const unique_lock&) = delete;
 
     void lock() 
-    {
+    { 
         check();
-        p_mtx->lock();
+        pmtx->lock();
         own = true;
     }
 
     bool try_lock() 
     {
         check();
-        own = p_mtx->try_lock();
+        own = pmtx->try_lock();
         return own;
     }
 
     template <class _Rep, class _Period>
-    bool try_lock_for(const chrono::duration<_Rep, _Period>& _Rel_time) 
+    bool try_lock_for(const chrono::duration<_Rep, _Period>& rel_time) 
     {
         check();
-        own = p_mtx->try_lock_for(_Rel_time);
+        own = pmtx->try_lock_for(rel_time);
         return own;
     }
 
     template <class _Clock, class _Duration>
-    bool try_lock_until(const chrono::time_point<_Clock, _Duration>& _Abs_time) 
-    {
-#if _HAS_CXX20
-        static_assert(chrono::is_clock_v<_Clock>, "Clock type required");
-#endif // _HAS_CXX20
-        check();
-        own = p_mtx->try_lock_until(_Abs_time);
-        return own;
-    }
-
-    bool try_lock_until(const xtime* _Abs_time) 
+    bool try_lock_until(const chrono::time_point<_Clock, _Duration>& abs_time) 
     {
         check();
-        own = p_mtx->try_lock_until(_Abs_time);
+        own = pmtx->try_lock_until(abs_time);
         return own;
     }
 
     void unlock() 
     {
-        if (!p_mtx || !own) 
+        if (!pmtx || !own) 
         {
             _Throw_system_error(errc::operation_not_permitted);
         }
 
-        p_mtx->unlock();
+        pmtx->unlock();
         own = false;
     }
 
-    void swap(unique_lock& other) noexcept 
+    void swap(unique_lock& other)  
     {
-        std::swap(p_mtx, other.p_mtx);
+        std::swap(pmtx, other.pmtx);
         std::swap(own, other.own);
     }
 
-    T* release() noexcept 
+    _Mutex* release()  
     {
-        T* res = p_mtx;
-        p_mtx        = nullptr;
-        own        = false;
+        _Mutex* res = pmtx;
+        pmtx        = nullptr;
+        own         = false;
         return res;
     }
 
-    bool owns_lock() const noexcept 
+    bool owns_lock() const  
     {
         return own;
     }
 
-    explicit operator bool() const noexcept 
+    operator bool() const  
     {
         return own;
     }
 
-    T* mutex() const noexcept {
-        return p_mtx;
+    _Mutex* mutex() const  
+    {
+        return pmtx;
     }
 
 private:
-    T* p_mtx;       // 指向管理的 mutex 实例
-    bool own;       // 是否 lock 过
+    _Mutex* pmtx;   // 指向管理的 mutex
+    bool own;       // 是否拥有互斥
 
     void check() const 
-    { // check if the mutex can be locked
-        if (!p_mtx) 
+    { 	// 检测能否 lock
+        if (!pmtx) 
         {
             _Throw_system_error(errc::operation_not_permitted);
         }
