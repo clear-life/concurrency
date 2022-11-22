@@ -1,25 +1,66 @@
 class condition_variable 
-{ // class for waiting for conditions
+{ 
 public:
-    condition_variable();
+    condition_variable() 
+    {
+        _Cnd_init_in_situ(mycnd());
+    }
 
-    ~condition_variable();
+    ~condition_variable() 
+    {
+        _Cnd_destroy_in_situ(mycnd());
+    }
 
     condition_variable(const condition_variable&) = delete;
     condition_variable& operator=(const condition_variable&) = delete;
 
-    void notify_one();  // 唤醒一个阻塞线程
+    // V 操作
+    void notify_one() 
+    {   
+        _Cnd_signal(mycnd());
+    }
 
-    void notify_all();  // 唤醒所有阻塞线程
+    void notify_all() 
+    {   
+        _Cnd_broadcast(mycnd());
+    }
 
-    void wait(unique_lock<mutex>& _Lck);    // 等待信号
+    // P 操作
+    void wait(unique_lock<mutex>& lck) 
+    {   
+        _Cnd_wait(mycnd(), lck.mutex()->mymtx());
+    }
 
-    template <class _Predicate>
-    void wait(unique_lock<mutex>& _Lck, _Predicate _Pred)   // 等待信号 and 测试断言
-    { 
-        while (!_Pred()) 
+    template <class Func>
+    void wait(unique_lock<mutex>& lck, Func func) 
+    {   // 除了要有 V 操作(signal), 对应的条件也得满足
+        while (!func()) 
         {
-            wait(_Lck);
+            wait(lck);
         }
+    }
+
+
+    // 时间段
+    template <class _Rep, class _Period>
+    int wait_for(unique_lock<mutex>& lck, const chrono::duration<_Rep, _Period>& rel_time) {}
+
+    template <class _Rep, class _Period, class Func>
+    bool wait_for(unique_lock<mutex>& lck, const chrono::duration<_Rep, _Period>& rel_time, Func func) {}
+
+
+    // 时间点
+    template <class _Clock, class _Duration>
+    int wait_until(unique_lock<mutex>& lck, const chrono::time_point<_Clock, _Duration>& abs_time) {}
+
+    template <class _Clock, class _Duration, class Func>
+    bool wait_until(unique_lock<mutex>& lck, const chrono::time_point<_Clock, _Duration>& abs_time, Func func) {}
+
+private:
+    struct cnd_storage;
+
+    void* mycnd() 
+    {  
+        return reinterpret_cast<void*>(&cnd_storage);
     }
 };

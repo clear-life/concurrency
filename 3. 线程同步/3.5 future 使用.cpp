@@ -3,14 +3,14 @@
 
 using namespace std;
 
-int fun()
+int fun(int)
 {
     return 1;
 }
 
 int main()
 {
-    std::future<int> f = std::async(fun);
+    std::future<int> f = std::async(fun, 1);
 
     cout << f.get() << endl;
 }
